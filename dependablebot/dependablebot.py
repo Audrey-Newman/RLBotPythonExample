@@ -25,8 +25,23 @@ class DependableBot(BaseAgent):
 
         self.state = collectBoost()
         self.controller = dependableController
-        controller_state = SimpleControllerState()
+        # controller_state = SimpleControllerState()
 
+    def nextState(self):
+        #Code for state machine here
+        #Use logic from the diagram in the slides
+        if self.state.expired:
+            if collectBoost().conditionsMet(self):
+                self.state = collectBoost()
+            elif driveToBall().conditionsMet(self):
+                self.state = driveToBall()
+            elif pushBall().conditionsMet(self):
+                self.state = pushBall()
+
+    def get_output(self, game: GameTickPacket) -> SimpleControllerState:
+        self.preprocess(game)
+        self.nextState()
+        return self.state.execute(self)
 
     def preprocess(self, game):
         #Game Tick Packet data found at link below
@@ -84,21 +99,6 @@ class DependableBot(BaseAgent):
         self.activeBoosts[3] = game.game_boosts[4].is_active
         self.activeBoosts[4] = game.game_boosts[29].is_active
         self.activeBoosts[5] = game.game_boosts[3].is_active
-
-
-    def nextState(self):
-        #Code for state machine here
-        #Use logic from the diagram in the slides
-        if self.me.boost < 20:
-            self.state = collectBoost()
-        else:            
-            self.state = driveToBall()
-
-
-    def get_output(self, game: GameTickPacket) -> SimpleControllerState:
-        self.preprocess(game)
-        self.nextState()
-        return self.state.execute(self)
 
 '''
 Can use draw functions to help debug here
