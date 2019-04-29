@@ -23,13 +23,40 @@ class DependableBot(BaseAgent):
         self.activeBoosts = []
         self.index = 0
 
-        self.state = collectBoost()
+        self.state = defend()
+        self.state.val = 0
         self.controller = dependableController
         # controller_state = SimpleControllerState()
 
     def nextState(self):
         #Code for state machine here
         #Use logic from the diagram in the slides
+        if self.state.val == 0: #defend state
+            if self.state.expired:
+                if self.me.boost < 20:
+                    self.state = collectBoost()
+                else:
+                    self.state = driveToBall()
+        elif self.state.val == 1: #collect boost state
+            if self.me.boost > 60:
+                self.state = driveToBall()
+        elif self.state.val == 2: #drive to ball state
+            if distance2D(self.me.location.data, self.ball.location.data) < 400:
+            #if pushBall().conditionsMet(self):
+                self.state = pushBall()
+        elif self.state.val == 4: #push ball state
+            if self.me.location.data[1]*sign(self.team) < self.ball.location.data[1]*sign(self.team):
+                self.state = defend()
+        else:
+            self.state = defend()
+        '''
+        self.renderer.begin_rendering()
+        self.renderer.draw_string_2d(20, 20, 3, 3, str(self.stateVal), self.renderer.black())
+        self.renderer.end_rendering()
+        '''
+
+        '''
+
         if self.state.expired:
             if collectBoost().conditionsMet(self):
                 self.state = collectBoost()
@@ -37,7 +64,7 @@ class DependableBot(BaseAgent):
                 self.state = driveToBall()
             elif pushBall().conditionsMet(self):
                 self.state = pushBall()
-
+        '''
     def get_output(self, game: GameTickPacket) -> SimpleControllerState:
         self.preprocess(game)
         self.nextState()

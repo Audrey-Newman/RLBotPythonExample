@@ -3,17 +3,27 @@ import time
 from rlbot.agents.base_agent import  SimpleControllerState
 from Util import *
 
-'''
+
 class defend:
 	def __init__(self):
+		self.expired = False
+		self.val = 0
 
 	def execute(self, agent):
+		xlocation = cap(agent.ball.location.data[0]*.8, -900, 900)
+		target_location = Vector3([xlocation, 5100*sign(agent.team), 200])
+		target_speed = 1399
+		if distance2D(target_location, agent.me.location.data) < 1500:
+			self.expired = True
+		elif (agent.me.location.data[1]+5120)*-sign(agent.team) < 0.75*(agent.ball.location.data[1]+5120)*-sign(agent.team):
+			self.expired = True
 
 		return dependableController(agent, target_location, target_speed)
-'''
+
 class collectBoost:
 	def __init__(self):
 		self.expired = False
+		self.val = 1
 
 	def conditionsMet(self, agent):
 		if agent.me.boost < 20:
@@ -43,6 +53,7 @@ class collectBoost:
 class driveToBall:
 	def __init__(self):
 		self.expired = False
+		self.val = 2
 
 	def conditionsMet(self, agent):
 		defense = sign(agent.me.location.data[1]) == sign(agent.team)
@@ -56,14 +67,16 @@ class driveToBall:
 		return False
 
 	def execute(self, agent):
-		approachDistance = 1000
-		if distance2D(agent.ball, agent.me) < 1100:
+		ballDistance = distance2D(agent.me, agent.ball)
+		approachDistance = ballDistance * 0.7
+		'''if distance2D(agent.ball, agent.me) < 1100:
 			target_speed = 400
 		elif distance2D(agent.ball, agent.me) < 1500:
-			target_speed = 800
+			target_speed = 1200
 		else:
 			target_speed = 1600
-
+		'''
+		target_speed = 1600
 		ballLocation = agent.ball.location
 		goalCenter = Vector3([0 , 5100*-sign(agent.team), 200])
 		ballGoalAngle = angle2(ballLocation, goalCenter)
@@ -76,19 +89,22 @@ class driveToBall:
 		
 		return dependableController(agent, target_location, target_speed)
 
-'''
+
 class takeShot:
 	def __init__(self):
 		self.expired = False
+		self.val = 3
 
 	def execute(self, agent):
-
+		target_location = agent.me.location
+		target_speed = 1
 		return dependableController(agent, target_location, target_speed)
-'''
+
 
 class pushBall:
 	def __init__(self):
 		self.expired = False
+		self.val = 4
 
 	def conditionsMet(self, agent):
 		if distance2D(agent.ball, agent.me) < 1000:
@@ -96,7 +112,7 @@ class pushBall:
 		return False
 
 	def execute(self, agent):
-		target_speed = 1200
+		target_speed = cap(velocity2D(agent.ball) + 200, 1600, 2300)
 
 		goal = Vector3([0,-sign(agent.team)*FIELD_LENGTH/2,100])
 		left_post = Vector3([-sign(agent.team)*700 , 5100*-sign(agent.team), 200])
@@ -115,22 +131,29 @@ class pushBall:
 		elif bot_left < ball_left and bot_right < ball_right:
 			goal = left_post
 
+		ballLocation = agent.ball.location
+		ballGoalAngle = angle2(ballLocation, goal)
+		xlocation = 100 * sign(agent.team) * math.cos(ballGoalAngle)
+		ylocation = 100 * sign(agent.team) * math.sin(ballGoalAngle)
+		target_location = ballLocation - Vector3([xlocation, ylocation, 0])
+
+		'''
 		ball_to_goal = (goal - agent.ball.location).normalize()
 
 		target_distance = cap(distance2D(agent.ball.location, agent.me)/2, 0, 500)
 
-		target_location = agent.ball.location - Vector3([(ball_to_goal.data[0]*target_distance),(ball_to_goal.data[1]*target_distance),0])
-
+		target_location = agent.ball.location #- Vector3([(ball_to_goal.data[0]*target_distance),(ball_to_goal.data[1]*target_distance),0])
+		'''
 		if driveToBall().conditionsMet(agent):
 			self.expired = True
-
+		'''
 		colorRed = cap(int( (2300/2300) * 255),0,255)
 		colorBlue =cap(255-colorRed,0,255)
 
 		agent.renderer.begin_rendering()
 		agent.renderer.draw_line_3d(agent.ball.location.data, target_location.data, agent.renderer.create_color(255, colorRed, 0, colorBlue))
 		agent.renderer.end_rendering()
-
+		'''
 		return dependableController(agent, target_location, target_speed)
 
 def dependableController(agent, target_location, target_speed):
@@ -157,7 +180,7 @@ def dependableController(agent, target_location, target_speed):
 
 	#dodging
 	time_difference = time.time() - agent.start
-	if time_difference > 2.2 and distance2D(target_location,agent.me) > (velocity2D(agent.me)*2.5) and abs(angle) < 1.3 and agent.me.location.data[2] < 100:
+	if time_difference > 2.2 and distance2D(target_location,agent.me) > (velocity2D(agent.me)*2.5) and abs(angle) < 1.0 and agent.me.location.data[2] < 100:
 		agent.start = time.time()
 	elif time_difference <= 0.1:
 		controller_state.jump = True
