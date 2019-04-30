@@ -17,54 +17,34 @@ class DependableBot(BaseAgent):
         #This runs once before the bot starts up
         self.me = obj()
         self.ball = obj()
-        self.players = [] #holds other players in match
+        self.players = []
         self.start = time.time()
-        self.timers = [] #holds timer values for 6 big boosts
         self.activeBoosts = []
         self.index = 0
 
         self.state = defend()
         self.state.val = 0
         self.controller = dependableController
-        # controller_state = SimpleControllerState()
 
     def nextState(self):
-        #Code for state machine here
-        #Use logic from the diagram in the slides
-        if self.state.val == 0: #defend state
+        if self.state.val == DEFEND:
             if self.state.expired:
                 if self.me.boost < 20:
                     self.state = collectBoost()
                 else:
                     self.state = driveToBall()
-        elif self.state.val == 1: #collect boost state
+        elif self.state.val == COLLECT_BOOST:
             if self.me.boost > 60:
                 self.state = driveToBall()
-        elif self.state.val == 2: #drive to ball state
+        elif self.state.val == DRIVE_TO_BALL:
             if distance2D(self.me.location.data, self.ball.location.data) < 400:
-            #if pushBall().conditionsMet(self):
                 self.state = pushBall()
-        elif self.state.val == 4: #push ball state
+        elif self.state.val == PUSH_BALL:
             if self.me.location.data[1]*sign(self.team) < self.ball.location.data[1]*sign(self.team):
                 self.state = defend()
         else:
             self.state = defend()
-        '''
-        self.renderer.begin_rendering()
-        self.renderer.draw_string_2d(20, 20, 3, 3, str(self.stateVal), self.renderer.black())
-        self.renderer.end_rendering()
-        '''
 
-        '''
-
-        if self.state.expired:
-            if collectBoost().conditionsMet(self):
-                self.state = collectBoost()
-            elif driveToBall().conditionsMet(self):
-                self.state = driveToBall()
-            elif pushBall().conditionsMet(self):
-                self.state = pushBall()
-        '''
     def get_output(self, game: GameTickPacket) -> SimpleControllerState:
         self.preprocess(game)
         self.nextState()
@@ -110,14 +90,6 @@ class DependableBot(BaseAgent):
                         break
                 if not flag:
                     self.players.append(temp)
-
-        self.timers = [None] * 6
-        self.timers[0] = game.game_boosts[18].timer
-        self.timers[1] = game.game_boosts[15].timer
-        self.timers[2] = game.game_boosts[30].timer
-        self.timers[3] = game.game_boosts[4].timer
-        self.timers[4] = game.game_boosts[29].timer
-        self.timers[5] = game.game_boosts[3].timer
 
         self.activeBoosts = [None] * 6
         self.activeBoosts[0] = game.game_boosts[18].is_active

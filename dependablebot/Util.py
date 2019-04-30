@@ -4,6 +4,13 @@ GOAL_WIDTH = 1900
 FIELD_LENGTH = 10280
 FIELD_WIDTH = 8240
 
+# States
+DEFEND = 0
+COLLECT_BOOST = 1
+DRIVE_TO_BALL = 2
+TAKE_SHOT = 3
+PUSH_BALL = 4
+
 boosts = [
     [3584, 0,0],
     [-3584, 0,0],
@@ -163,3 +170,7 @@ def distance2D(target_object, our_object):
 def simpleTime2D(target_object, our_object):
     return distance2D(target_object, our_object) / (velocity2D(our_object)+1)
 
+def ballOnWall(agent):
+    ball_on_side_wall = agent.ball.location.data[0] >= 3900 or agent.ball.location.data[0] <= -3900
+    ball_on_goal_wall = (agent.ball.location.data[1] >= 4920 or agent.ball.location.data[1] <= -4920) and (agent.ball.location.data[0] > 900 or agent.ball.location.data[0] <= -900)
+    return ball_on_goal_wall or ball_on_side_wall

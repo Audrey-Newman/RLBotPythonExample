@@ -7,7 +7,7 @@ from Util import *
 class defend:
 	def __init__(self):
 		self.expired = False
-		self.val = 0
+		self.val = DEFEND
 
 	def execute(self, agent):
 		xlocation = cap(agent.ball.location.data[0]*.8, -900, 900)
@@ -23,12 +23,7 @@ class defend:
 class collectBoost:
 	def __init__(self):
 		self.expired = False
-		self.val = 1
-
-	def conditionsMet(self, agent):
-		if agent.me.boost < 20:
-			return True
-		return False
+		self.val = COLLECT_BOOST
 
 	def execute(self, agent):
 		closest_boost = -1
@@ -43,49 +38,24 @@ class collectBoost:
 
 		target_location = boosts[closest_boost]
 
-		if not self.conditionsMet(agent):
-			self.expired = True
-
-        # TODO check for other states to be ready (those that take priority over boost)
-
 		return dependableController(agent, target_location, target_speed)
 
 class driveToBall:
 	def __init__(self):
 		self.expired = False
-		self.val = 2
-
-	def conditionsMet(self, agent):
-		defense = sign(agent.me.location.data[1]) == sign(agent.team)
-		ball_between_me_and_goal = False
-
-		if agent.ball.location.data[1]*sign(agent.team) > agent.me.location.data[1]*sign(agent.team):
-			ball_between_me_and_goal = True
-
-		if distance2D(agent.ball, agent.me) >= 1000 or (defense and ball_between_me_and_goal):
-			return True
-		return False
+		self.val = DRIVE_TO_BALL
 
 	def execute(self, agent):
 		ballDistance = distance2D(agent.me, agent.ball)
 		approachDistance = ballDistance * 0.7
-		'''if distance2D(agent.ball, agent.me) < 1100:
-			target_speed = 400
-		elif distance2D(agent.ball, agent.me) < 1500:
-			target_speed = 1200
-		else:
-			target_speed = 1600
-		'''
 		target_speed = 1600
+
 		ballLocation = agent.ball.location
 		goalCenter = Vector3([0 , 5100*-sign(agent.team), 200])
 		ballGoalAngle = angle2(ballLocation, goalCenter)
 		xlocation = approachDistance * sign(agent.team) * math.cos(ballGoalAngle)
 		ylocation = approachDistance * sign(agent.team) * math.sin(ballGoalAngle)
 		target_location = ballLocation - Vector3([xlocation, ylocation, 0])
-
-		if not self.conditionsMet(agent):
-			self.expired = True
 		
 		return dependableController(agent, target_location, target_speed)
 
@@ -93,7 +63,7 @@ class driveToBall:
 class takeShot:
 	def __init__(self):
 		self.expired = False
-		self.val = 3
+		self.val = TAKE_SHOT
 
 	def execute(self, agent):
 		target_location = agent.me.location
@@ -104,32 +74,20 @@ class takeShot:
 class pushBall:
 	def __init__(self):
 		self.expired = False
-		self.val = 4
-
-	def conditionsMet(self, agent):
-		if distance2D(agent.ball, agent.me) < 1000:
-			return True
-		return False
+		self.val = PUSH_BALL
 
 	def execute(self, agent):
-		target_speed = cap(velocity2D(agent.ball) + 200, 1600, 2300)
+		# target_speed = cap(velocity2D(agent.ball) + 200, 1600, 2300)
+		ball_height = agent.ball.location.data[2]
+		ball_distance = distance2D(agent.me, agent.ball)
+		ball_on_wall = ballOnWall(agent)
+
+		if ball_height > 110 and ball_distance < 400 and not ball_on_wall:
+			target_speed = velocity2D(agent.ball)
+		else:
+			target_speed = cap(velocity2D(agent.ball) + 200, 1600, 2300)
 
 		goal = Vector3([0,-sign(agent.team)*FIELD_LENGTH/2,100])
-		left_post = Vector3([-sign(agent.team)*700 , 5100*-sign(agent.team), 200])
-		right_post = Vector3([sign(agent.team)*700, 5100*-sign(agent.team), 200])
-
-		ball_left = angle2(agent.ball, left_post)
-		ball_right = angle2(agent.ball, right_post)
-		bot_left = angle2(agent.me, left_post)
-		bot_right = angle2(agent.me, right_post)
-
-		if bot_left > ball_left and bot_right > ball_right:
-			# agent.renderer.begin_rendering()
-			# agent.renderer.draw_string_2d(20, 20, 3, 3, "right post", agent.renderer.black())
-			# agent.renderer.end_rendering()
-			goal = right_post
-		elif bot_left < ball_left and bot_right < ball_right:
-			goal = left_post
 
 		ballLocation = agent.ball.location
 		ballGoalAngle = angle2(ballLocation, goal)
@@ -137,23 +95,10 @@ class pushBall:
 		ylocation = 100 * sign(agent.team) * math.sin(ballGoalAngle)
 		target_location = ballLocation - Vector3([xlocation, ylocation, 0])
 
-		'''
-		ball_to_goal = (goal - agent.ball.location).normalize()
+		# ball_to_goal = (goal - agent.ball.location).normalize()
+		# target_distance = 100
+		# target_location = agent.ball.location - Vector3([(ball_to_goal.data[0]*target_distance),(ball_to_goal.data[1]*target_distance),0])
 
-		target_distance = cap(distance2D(agent.ball.location, agent.me)/2, 0, 500)
-
-		target_location = agent.ball.location #- Vector3([(ball_to_goal.data[0]*target_distance),(ball_to_goal.data[1]*target_distance),0])
-		'''
-		if driveToBall().conditionsMet(agent):
-			self.expired = True
-		'''
-		colorRed = cap(int( (2300/2300) * 255),0,255)
-		colorBlue =cap(255-colorRed,0,255)
-
-		agent.renderer.begin_rendering()
-		agent.renderer.draw_line_3d(agent.ball.location.data, target_location.data, agent.renderer.create_color(255, colorRed, 0, colorBlue))
-		agent.renderer.end_rendering()
-		'''
 		return dependableController(agent, target_location, target_speed)
 
 def dependableController(agent, target_location, target_speed):
