@@ -30,7 +30,7 @@ class Vector3:
     def __mul__(self,value):
         return (self.data[0]*value.data[0] + self.data[1]*value.data[1] + self.data[2]*value.data[2])
     def magnitude(self):
-        return math.sqrt((self.data[0]*self.data[0]) + (self.data[1] * self.data[1])+ (self.data[2]* self.data[2]))
+        return math.sqrt((self.data[0]*self.data[0]) + (self.data[1] * self.data[1]) + (self.data[2]* self.data[2]))
     def normalize(self):
         mag = self.magnitude()
         if mag != 0:

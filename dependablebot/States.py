@@ -50,12 +50,16 @@ class driveToBall:
 		approachDistance = ballDistance * 0.7
 		target_speed = 1600
 
-		ballLocation = agent.ball.location
-		goalCenter = Vector3([0 , 5100*-sign(agent.team), 200])
-		ballGoalAngle = angle2(ballLocation, goalCenter)
-		xlocation = approachDistance * sign(agent.team) * math.cos(ballGoalAngle)
-		ylocation = approachDistance * sign(agent.team) * math.sin(ballGoalAngle)
-		target_location = ballLocation - Vector3([xlocation, ylocation, 0])
+		# ballLocation = agent.ball.location
+		# goalCenter = Vector3([0 , 5100*-sign(agent.team), 200])
+		# ballGoalAngle = angle2(ballLocation, goalCenter)
+		# xlocation = approachDistance * sign(agent.team) * math.cos(ballGoalAngle)
+		# ylocation = approachDistance * sign(agent.team) * math.sin(ballGoalAngle)
+		# target_location = ballLocation - Vector3([xlocation, ylocation, 0])
+
+		goal = Vector3([0,-sign(agent.team)*FIELD_LENGTH/2,100])
+		ball_to_goal = (goal - agent.ball.location).normalize()
+		target_location = agent.ball.location - Vector3([(ball_to_goal.data[0]*approachDistance),(ball_to_goal.data[1]*approachDistance),0])
 		
 		return dependableController(agent, target_location, target_speed)
 
@@ -77,7 +81,6 @@ class pushBall:
 		self.val = PUSH_BALL
 
 	def execute(self, agent):
-		# target_speed = cap(velocity2D(agent.ball) + 200, 1600, 2300)
 		ball_height = agent.ball.location.data[2]
 		ball_distance = distance2D(agent.me, agent.ball)
 		ball_on_wall = ballOnWall(agent)
@@ -89,15 +92,23 @@ class pushBall:
 
 		goal = Vector3([0,-sign(agent.team)*FIELD_LENGTH/2,100])
 
-		ballLocation = agent.ball.location
-		ballGoalAngle = angle2(ballLocation, goal)
-		xlocation = 100 * sign(agent.team) * math.cos(ballGoalAngle)
-		ylocation = 100 * sign(agent.team) * math.sin(ballGoalAngle)
-		target_location = ballLocation - Vector3([xlocation, ylocation, 0])
+		# ballLocation = agent.ball.location
+		# ballGoalAngle = angle2(ballLocation, goal)
+		# xlocation = 100 * sign(agent.team) * math.cos(ballGoalAngle)
+		# ylocation = 100 * sign(agent.team) * math.sin(ballGoalAngle)
+		# target_location = ballLocation - Vector3([xlocation, ylocation, 0])
 
-		# ball_to_goal = (goal - agent.ball.location).normalize()
-		# target_distance = 100
-		# target_location = agent.ball.location - Vector3([(ball_to_goal.data[0]*target_distance),(ball_to_goal.data[1]*target_distance),0])
+		ball_to_goal = (goal - agent.ball.location).normalize()
+		target_distance = 100
+		target_location = agent.ball.location - Vector3([(ball_to_goal.data[0]*target_distance),(ball_to_goal.data[1]*target_distance),0])
+
+		xlocation = ball_to_goal.data[0]*target_distance
+		ylocation = ball_to_goal.data[1]*target_distance
+
+		agent.renderer.begin_rendering()
+		agent.renderer.draw_string_2d(20, 20, 3, 3, "x: " + str(xlocation), agent.renderer.black())
+		agent.renderer.draw_string_2d(20, 60, 3, 3, "y: " + str(ylocation), agent.renderer.black())
+		agent.renderer.end_rendering()
 
 		return dependableController(agent, target_location, target_speed)
 
