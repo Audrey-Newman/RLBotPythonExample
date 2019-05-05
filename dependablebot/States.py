@@ -15,7 +15,7 @@ class defend:
 		target_speed = 1399
 		if distance2D(target_location, agent.me.location.data) < 1500:
 			self.expired = True
-		elif (agent.me.location.data[1]+5120)*-sign(agent.team) < 0.75*(agent.ball.location.data[1]+5120)*-sign(agent.team):
+		elif (agent.me.location.data[1]+5120)*-sign(agent.team) < 0.5*(agent.ball.location.data[1]+5120)*-sign(agent.team):
 			self.expired = True
 
 		return dependableController(agent, target_location, target_speed)
@@ -47,8 +47,13 @@ class driveToBall:
 
 	def execute(self, agent):
 		ballDistance = distance2D(agent.me, agent.ball)
-		approachDistance = ballDistance * 0.7
 		target_speed = 1600
+		if velocity2D(agent.me) != 0:
+			ballFuture = future(agent.ball, ballDistance/velocity2D(agent.me))
+		else:
+			ballFuture = future(agent.ball, ballDistance/200)
+		ballFutureDistance = distance2D(agent.me, ballFuture)
+		approachDistance = ballFutureDistance * 0.5
 
 		# ballLocation = agent.ball.location
 		# goalCenter = Vector3([0 , 5100*-sign(agent.team), 200])
@@ -59,7 +64,7 @@ class driveToBall:
 
 		goal = Vector3([0,-sign(agent.team)*FIELD_LENGTH/2,100])
 		ball_to_goal = (goal - agent.ball.location).normalize()
-		target_location = agent.ball.location - Vector3([(ball_to_goal.data[0]*approachDistance),(ball_to_goal.data[1]*approachDistance),0])
+		target_location = ballFuture - Vector3([(ball_to_goal.data[0]*approachDistance),(ball_to_goal.data[1]*approachDistance),0])
 		
 		return dependableController(agent, target_location, target_speed)
 
@@ -70,8 +75,17 @@ class takeShot:
 		self.val = TAKE_SHOT
 
 	def execute(self, agent):
-		target_location = agent.me.location
-		target_speed = 1
+		ballDistance = distance2D(agent.me, agent.ball)
+		if velocity2D(agent.me) != 0:
+			target_location = future(agent.ball, ballDistance/velocity2D(agent.me))
+		else:
+			target_location = future(agent.ball, ballDistance/200)
+		goalCenter = Vector3([0 , 5100*-sign(agent.team), 200])
+		ballGoalDistance = distance2D(self.ball, goalCenter)
+		if ballGoalDistance > 1500:
+			target_speed = 2300
+		else:
+			target_speed = 2000
 		return dependableController(agent, target_location, target_speed)
 
 
