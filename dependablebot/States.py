@@ -65,7 +65,7 @@ class driveToBall:
 		goal = Vector3([0,-sign(agent.team)*FIELD_LENGTH/2,100])
 		ball_to_goal = (goal - agent.ball.location).normalize()
 		target_location = ballFuture - Vector3([(ball_to_goal.data[0]*approachDistance),(ball_to_goal.data[1]*approachDistance),0])
-		
+
 		return dependableController(agent, target_location, target_speed)
 
 
@@ -81,7 +81,7 @@ class takeShot:
 		else:
 			target_location = future(agent.ball, ballDistance/200)
 		goalCenter = Vector3([0 , 5100*-sign(agent.team), 200])
-		ballGoalDistance = distance2D(self.ball, goalCenter)
+		ballGoalDistance = distance2D(agent.ball, goalCenter)
 		if ballGoalDistance > 1500:
 			target_speed = 2300
 		else:
