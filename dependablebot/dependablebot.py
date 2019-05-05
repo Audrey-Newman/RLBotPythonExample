@@ -11,6 +11,11 @@ from rlbot.utils.game_state_util import GameState, BallState, CarState, Physics,
 #https://github.com/RLBot/RLBot/wiki/Useful-Game-Values
 #https://github.com/RLBot/RLBotPythonExample/wiki/Input-and-Output-Data
 
+#global variables for last valid packet data
+last_location, last_velocity, last_rotation, last_rvelocity = [0,0,0], [0,0,0], [0,0,0], [0,0,0]
+last_ball_location, last_ball_velocity, last_ball_rotation, last_ball_rvelocity = [0,0,0], [0,0,0], [0,0,0], [0,0,0]
+last_boost = 0
+
 class DependableBot(BaseAgent):
 
     def initialize_agent(self):
@@ -55,18 +60,48 @@ class DependableBot(BaseAgent):
         #https://github.com/RLBot/RLBotPythonExample/wiki/Input-and-Output-Data
         self.players = []
         car = game.game_cars[self.index]
-        self.me.location.data = [car.physics.location.x, car.physics.location.y, car.physics.location.z]
-        self.me.velocity.data = [car.physics.velocity.x, car.physics.velocity.y, car.physics.velocity.z]
+
+        global last_location, last_velocity, last_rotation, last_rvelocity, last_ball_location, last_ball_velocity, last_ball_rotation, last_ball_rvelocity, last_boost
+
+        self.me.location.data = last_location
+        self.me.velocity.data = last_velocity
+        self.me.rotation.data = last_rotation
+        self.me.rvelocity.data = last_rvelocity
+
+        if (-4096 <= car.physics.location.x <= 4096) and (0 <= car.physics.location.z <= 2044):
+            self.me.location.data = [car.physics.location.x, car.physics.location.y, car.physics.location.z]
+            last_location = self.me.location.data
+
+        if all(abs(v) <= 2300 for v in (car.physics.velocity.x, car.physics.velocity.y, car.physics.velocity.z)):
+            self.me.velocity.data = [car.physics.velocity.x, car.physics.velocity.y, car.physics.velocity.z]
+            last_velocity = self.me.velocity.data
+
         self.me.rotation.data = [car.physics.rotation.pitch, car.physics.rotation.yaw, car.physics.rotation.roll]
         self.me.rvelocity.data = [car.physics.angular_velocity.x, car.physics.angular_velocity.y, car.physics.angular_velocity.z]
+
         self.me.matrix = rotator_to_matrix(self.me)
-        self.me.boost = car.boost
+        self.me.boost = last_boost
+        if car.boost <= 100:
+            self.me.boost = car.boost
 
         ball = game.game_ball.physics
-        self.ball.location.data = [ball.location.x, ball.location.y, ball.location.z]
-        self.ball.velocity.data = [ball.velocity.x, ball.velocity.y, ball.velocity.z]
+
+        self.ball.location.data = last_ball_location
+        self.ball.velocity.data = last_ball_velocity
+        self.ball.rotation.data = last_ball_rotation
+        self.ball.rvelocity.data = last_ball_rvelocity
+
+        if (-4096 <= ball.location.x <= 4096) and (0 <= ball.location.z <= 2044):
+            self.ball.location.data = [ball.location.x, ball.location.y, ball.location.z]
+            last_ball_location = self.ball.location.data
+
+        if all(abs(v) <= 2300 for v in (ball.velocity.x, ball.velocity.y, ball.velocity.z)):
+            self.ball.velocity.data = [ball.velocity.x, ball.velocity.y, ball.velocity.z]
+            last_ball_velocity = self.ball.velocity.data
+
         self.ball.rotation.data = [ball.rotation.pitch, ball.rotation.yaw, ball.rotation.roll]
         self.ball.rvelocity.data = [ball.angular_velocity.x, ball.angular_velocity.y, ball.angular_velocity.z]
+
 
         self.ball.local_location = to_local(self.ball,self.me)
 
