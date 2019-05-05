@@ -1,5 +1,4 @@
 from math import pi
-from random import randint
 from dataclasses import dataclass, field
 from typing import Optional, Mapping, Union
 from rlbot.utils.game_state_util import GameState, BoostState, BallState, CarState, Physics, Vector3, Rotator
@@ -29,13 +28,13 @@ class RandomBall(DependableExercise):
     def make_game_state(self, rng: SeededRandomNumberGenerator) -> GameState:
         return GameState(
             ball=BallState(physics=Physics(
-                location=Vector3(randint(-3500, 3500), randint(-2000, 5000), 100),
+                location=Vector3(0, 0, 100),
                 velocity=Vector3(0, 0, 0),
                 angular_velocity=Vector3(0, 0, 0))),
             cars={
                 0: CarState(
                     physics=Physics(
-                        location=Vector3(randint(-3500, 3500), randint(-4000, 4000), 300),
+                        location=Vector3(0, -4000, 300),
                         rotation=Rotator(0, pi / 2, 0),
                         velocity=Vector3(0, 0, 0),
                         angular_velocity=Vector3(0, 0, 0)),
