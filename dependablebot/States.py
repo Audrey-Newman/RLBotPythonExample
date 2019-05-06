@@ -47,7 +47,10 @@ class driveToBall:
 
 	def execute(self, agent):
 		ballDistance = distance2D(agent.me, agent.ball)
-		target_speed = 1600
+		if math.fabs(agent.me.location.data[0]) > 3100 or math.fabs(agent.me.location.data[0]) > 3700:
+			target_speed = 1000
+		else:
+			target_speed = 1600
 		if velocity2D(agent.me) != 0:
 			ballFuture = future(agent.ball, ballDistance/velocity2D(agent.me))
 		else:
@@ -136,6 +139,13 @@ def dependableController(agent, target_location, target_speed):
 
 	#steering
 	controller_state.steer = steer(angle)
+	r = radius(speed)
+	cool = (Vector3([0,sign(location.data[1])*(r+40),0]) - Vector3([location.data[0],location.data[1],0])).magnitude()/cap(r*1.7,1,1200)
+	if cool < 0.6:
+		controller_state.handbrake = True
+	else:
+		controller_state.handbrake = False
+	target_speed = cap(target_speed*cool,-target_speed,target_speed)
 
 	#throttle
 	if target_speed > speed:

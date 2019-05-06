@@ -41,10 +41,16 @@ class DependableBot(BaseAgent):
                 self.state = takeShot()
         elif self.state.val == PUSH_BALL:
             if self.me.location.data[1]*sign(self.team) < self.ball.location.data[1]*sign(self.team):
-                self.state = defend()
+                if self.me.boost < 20:
+                    self.state = collectBoost()
+                else:
+                    self.state = defend()
         elif self.state.val == TAKE_SHOT:
             if self.me.location.data[1]*sign(self.team) < self.ball.location.data[1]*sign(self.team) or distance2D(self.me.location.data, self.ball.location.data) > 600:
-                self.state = defend()
+                if self.me.boost < 20:
+                    self.state = collectBoost()
+                else:
+                    self.state = defend()
         else:
             self.state = defend()
 
