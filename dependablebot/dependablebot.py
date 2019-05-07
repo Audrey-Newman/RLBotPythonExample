@@ -22,9 +22,10 @@ class DependableBot(BaseAgent):
         self.activeBoosts = []
         self.index = 0
 
-        self.state = defend()
+        self.state = driveToBall()
         self.state.val = 0
         self.controller = dependableController
+        self.start = 2.5
 
     def nextState(self):
         if self.state.val == DEFEND:
