@@ -1,5 +1,6 @@
 import math
 import time
+import random
 from Util import *
 from States import *
 
@@ -24,6 +25,7 @@ class DependableBot(BaseAgent):
 
         self.state = driveToBall()
         self.state.val = 2
+        self.check = 2
         self.controller = dependableController
         self.start = 2.5
 
@@ -32,32 +34,89 @@ class DependableBot(BaseAgent):
             if self.state.expired:
                 if self.me.boost < 20:
                     self.state = collectBoost()
+                    self.check = 1
+                    self.badSwitch()
                 else:
                     self.state = driveToBall()
+                    self.check = 2
+                    self.badSwitch()
         elif self.state.val == COLLECT_BOOST:
             if self.me.boost > 60:
                 self.state = driveToBall()
+                self.check = 2
+                self.badSwitch()
         elif self.state.val == DRIVE_TO_BALL:
             if distance2D(self.me.location.data, self.ball.location.data) < 400:
                 self.state = takeShot()
+                self.check = 4
+                self.badSwitch()
         elif self.state.val == PUSH_BALL:
             if self.me.location.data[1]*sign(self.team) < self.ball.location.data[1]*sign(self.team):
                 if self.me.boost < 20:
                     self.state = collectBoost()
+                    self.check = 1
+                    self.badSwitch()
                 else:
                     self.state = defend()
+                    self.check = 0
+                    self.badSwitch()
         elif self.state.val == TAKE_SHOT:
             if self.me.location.data[1]*sign(self.team) < self.ball.location.data[1]*sign(self.team) or distance2D(self.me.location.data, self.ball.location.data) > 600:
                 if self.me.boost < 20:
                     self.state = collectBoost()
+                    self.check = 1
+                    self.badSwitch()
                 else:
                     self.state = defend()
+                    self.check = 0
+                    self.badSwitch()
         else:
             self.state = defend()
+        
+        self.badSwitch()
+
+    def switchToRandomState(self):
+        rand = random.randint(0,4)
+        if rand == 0:
+            self.state = defend()
+        elif rand == 1:
+            self.state = collectBoost()
+        elif rand == 2:
+            self.state = driveToBall()
+        elif rand == 3:
+            self.state = pushBall()
+        elif rand == 4:
+            self.state = takeShot()
+
+    def switchEarly(self):
+        rand = random.randint(1, 100)
+        if rand == 1:
+            switchToRandomState()
+        
+    def badSwitch(self):
+        rand = random.randint(1, 10)
+        if rand == 1:
+            switchToRandomState()
+
+    def checkState()
+        if self.check != self.state.val:
+            if self.check = 0:
+                self.state = defend()
+            elif self.check = 1:
+                self.state = collectBoost()
+            elif self.check = 2:
+                self.state = driveToBall()
+            elif self.check = 3:
+                self.state = pushBall()
+            elif self.check = 4:
+                self.state = takeShot()
+
 
     def get_output(self, game: GameTickPacket) -> SimpleControllerState:
+        self.checkState()
         self.preprocess(game)
         self.nextState()
+        self.switchEarly()
 
         ball_location = Vector2(game.game_ball.physics.location.x, game.game_ball.physics.location.y)
         my_car = game.game_cars[self.index]
