@@ -5,6 +5,7 @@ from rlbot.matchconfig.match_config import PlayerConfig, Team
 
 def make_default_playlist():
     exercises = [
+        ShotTest0("Shot 0"),
         ShotTest1("Shot 1"),
         ShotTest2("Shot 2"),
         ShotTest3("Shot 3"),
@@ -21,9 +22,11 @@ def make_default_playlist():
         ShotTest14("Shot 14"),
         ShotTest15("Shot 15"),
     ]
+
     for exercise in exercises:
         path_to_bot = Path(__file__).absolute().parent.parent / "dependablebot" / "dependablebot.cfg"
         exercise.match_config.player_configs = [
             PlayerConfig.bot_config(path_to_bot, Team.BLUE)
         ]
+
     return exercises
