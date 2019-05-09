@@ -27,7 +27,9 @@ class DependableBot(BaseAgent):
         self.state.val = 2
         self.check = 2
         self.controller = dependableController
-        self.start = 2.5
+        
+        self.startJump = time.time()
+        self.lastHitBall = time.time()
 
     def nextState(self):
         if self.state.val == DEFEND:
@@ -72,8 +74,7 @@ class DependableBot(BaseAgent):
                     self.badSwitch()
         else:
             self.state = defend()
-        
-        self.badSwitch()
+            self.badSwitch()
 
     def switchToRandomState(self):
         rand = random.randint(0,4)

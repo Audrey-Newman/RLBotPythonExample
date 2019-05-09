@@ -173,4 +173,26 @@ def dependableController(agent, target_location, target_speed):
 		controller_state.yaw = controller_state.steer
 		controller_state.pitch = -1
 
+	# Jumping to hit ball.
+	ball_height = agent.ball.location.data[2]
+	ball_distance = distance2D(agent.me, agent.ball)
+
+	front_to_ball = ball_distance - 59 - 93 # Assume car approaches ball head-on.
+	if front_to_ball < 10 and front_to_ball > -10: # If car hits ball
+		agent.lastHitBall = time.time()
+
+	time_from_last_hit = time.time() - agent.lastHitBall
+	
+	jump_distance = cap(math.fabs(velocity2D(agent.ball))*.75, 200, 600)
+	
+	if time_from_last_hit > 1 and ball_distance < jump_distance and ball_height > 107 and ball_height < 350 and not ballOnWall(agent):
+		time_difference = time.time() - agent.startJump
+		if time_difference > 2:
+			controller_state.jump = False
+			agent.startJump = time.time()
+		elif time_difference <= 0.1:
+			controller_state.jump = True
+		else:
+			controller_state.jump = False
+
 	return controller_state
