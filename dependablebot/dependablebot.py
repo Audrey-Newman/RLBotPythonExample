@@ -25,7 +25,9 @@ class DependableBot(BaseAgent):
         self.state = driveToBall()
         self.state.val = 2
         self.controller = dependableController
-        self.start = 2.5
+
+        self.startJump = time.time()
+        self.lastHitBall = time.time()
 
     def nextState(self):
         if self.state.val == DEFEND:
@@ -79,7 +81,7 @@ class DependableBot(BaseAgent):
             action_display += "\njump"
 
         # Comment this out to not display debugging
-        draw_debug(self.renderer, my_car, game.game_ball, action_display)
+        #draw_debug(self.renderer, my_car, game.game_ball, action_display)
 
         return self.state.execute(self)
 
